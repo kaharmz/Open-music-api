@@ -1,7 +1,7 @@
 {
-  "name": "open-music-api-v1",
+  "name": "open-music-api-v2",
   "version": "1.0.0",
-  "description": "Submission 1 backend fundamental dicoding academy ",
+  "description": "Submission 2 backend fundamental dicoding academy ",
   "main": "index.js",
   "scripts": {
     "start-prod": "NODE_ENV=production node ./src/server.js",
@@ -19,6 +19,8 @@
   },
   "dependencies": {
     "@hapi/hapi": "^20.1.5",
+    "@hapi/jwt": "^2.1.0",
+    "bcrypt": "^5.0.1",
     "dotenv": "^10.0.0",
     "joi": "^17.4.2",
     "nanoid": "^3.1.20",

@@ -24,6 +24,6 @@ const routes = (handler) => [
     path: '/songs/{id}',
     handler: handler.deleteSongByIdHandler,
   },
-]
+];
 
-module.exports = routes
+module.exports = routes;
