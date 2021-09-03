@@ -80,7 +80,7 @@ class PlaylistSongService {
         throw error;
       }
       try {
-        await this._collaborationService.verifyCollabolator(playlistId, userId);
+        await this._collaborationService.verifyCollaborator(playlistId, userId);
       } catch (error) {
         throw error;
       }
