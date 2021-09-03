@@ -3,7 +3,7 @@ const {Pool} = require('pg');
 const bcrypt = require('bcrypt');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
-const AuthorizationError = require('../../exceptions/AuthorizationError');
+const AuthenticationError = require('../../exceptions/AuthenticationError');
 
 class UserService {
   constructor() {
@@ -60,12 +60,12 @@ class UserService {
     };
     const result = await this._pool.query(query);
     if (!result.rowCount) {
-      throw new AuthorizationError('Kredensial yang anda berikan salah');
+      throw new AuthenticationError('Kredensial yang anda berikan salah');
     }
     const {id, password: hashedPasword} = result.rows[0];
     const match = await bcrypt.compare(password, hashedPasword);
     if (!match) {
-      throw new AuthorizationError('Kredensial yang anda berikan salah');
+      throw new AuthenticationError('Kredensial yang anda berikan salah');
     }
     return id;
   }
