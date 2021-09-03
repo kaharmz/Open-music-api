@@ -43,7 +43,7 @@ const init = async () => {
   const authenticationsService = new AuthenticationService();
   const collaborationsService = new CollaborationService();
   const playlistsService = new PlaylistsService();
-  const playlistsSongService = new PlaylistsSongService();
+  const playlistsSongService = new PlaylistsSongService(collaborationsService);
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -120,6 +120,7 @@ const init = async () => {
       plugin: collaborations,
       options: {
         service: collaborationsService,
+        playlistsSongService,
         validator: CollaborationsValidator,
       },
     },
