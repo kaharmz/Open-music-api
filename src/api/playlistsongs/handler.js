@@ -7,7 +7,7 @@ class PlaylistsSongHandler {
     this.deletePlaylistSongHandler = this.deletePlaylistSongHandler.bind(this);
   }
 
-  // Add Playlist song handler
+  // ADD playlist song
   async addPlaylistSongHandler(request, h) {
     const {playlistId} = request.params;
     const {songId} = request.payload;
@@ -23,7 +23,7 @@ class PlaylistsSongHandler {
     return response;
   }
 
-  // GET playlist song handler
+  // GET playlist song
   async getPlaylistSongHandler(request) {
     const {playlistId} = request.params;
     const {id: credentialId} = request.auth.credentials;
@@ -37,7 +37,7 @@ class PlaylistsSongHandler {
     };
   }
 
-  // DELETE playlist song handler
+  // DELETE playlist song
   async deletePlaylistSongHandler(request) {
     const {playlistId} = request.params;
     const {songId} = request.payload;
@@ -45,8 +45,8 @@ class PlaylistsSongHandler {
     await this._service.verifyPlaylistAccess(playlistId, credentialId);
     await this._service.deletePlaylistSong(playlistId, songId);
     return {
-      status: 'sucess',
-      message: 'Lagu berhasil dihapus dari playlist',
+      status: 'success',
+      message: 'Lagu berhasil ditambahkan',
     };
   }
 }

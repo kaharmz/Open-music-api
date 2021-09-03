@@ -4,7 +4,7 @@ class PlaylistsHandler {
     this._service = service;
     this.postPlaylistHandler = this.postPlaylistHandler.bind(this);
     this.getPlaylistHandler = this.getPlaylistHandler.bind(this);
-    this.deletePlaylistHandler = this.deletePlaylistByIdHandler.bind(this);
+    this.deletePlaylistByIdHandler = this.deletePlaylistByIdHandler.bind(this);
   }
 
   // POST playlist handler
@@ -55,3 +55,4 @@ class PlaylistsHandler {
 }
 
 module.exports = PlaylistsHandler;
+

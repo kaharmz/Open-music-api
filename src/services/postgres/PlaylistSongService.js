@@ -1,8 +1,8 @@
 const {Pool} = require('pg');
 const {nanoid} = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
-const NotFoundError = require('../../exceptions/NotFoundError');
 const AuthorizationError = require('../../exceptions/AuthorizationError');
+const NotFoundError = require('../../exceptions/NotFoundError');
 
 class PlaylistSongService {
   constructor(collaborationService) {
@@ -66,7 +66,7 @@ class PlaylistSongService {
       throw new NotFoundError('Playlist tidak ditemukan');
     }
     const playlist = result.rows[0];
-    if (!playlist.owner !== owner) {
+    if (playlist.owner !== owner) {
       throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
     }
   }
@@ -81,7 +81,7 @@ class PlaylistSongService {
       }
       try {
         await this._collaborationService.verifyCollaborator(playlistId, userId);
-      } catch (error) {
+      } catch {
         throw error;
       }
     }
