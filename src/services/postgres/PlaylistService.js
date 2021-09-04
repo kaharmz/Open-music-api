@@ -69,22 +69,6 @@ class PlaylistsService {
       throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
     }
   }
-
-  // Verify playlist access
-  async verifyPlaylistAccess(playlistId, userId) {
-    try {
-      await this.verifyPlaylistOwner(playlistId, userId);
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
-      }
-      try {
-        await this._collaborationService.verifyCollaborator(playlistId, userId);
-      } catch {
-        throw error;
-      }
-    }
-  }
 }
 
 module.exports = PlaylistsService;
