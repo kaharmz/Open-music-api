@@ -3,11 +3,13 @@ const {nanoid} = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
 const AuthorizationError = require('../../exceptions/AuthorizationError');
 const NotFoundError = require('../../exceptions/NotFoundError');
+const PlaylistsService = require('./PlaylistService');
 
 class PlaylistSongService {
   constructor(collaborationService) {
     this._pool = new Pool();
     this._collaborationService = collaborationService;
+    this.playlistsService = new PlaylistsService;
   }
 
   // Add playlist song
@@ -56,25 +58,15 @@ class PlaylistSongService {
   }
 
   // Verify playlist
-  async verifyPlaylistOwner(playlistId, owner) {
-    const query = {
-      text: 'SELECT owner FROM playlists WHERE id = $1',
-      values: [playlistId],
-    };
-    const result = await this._pool.query(query);
-    if (!result.rowCount) {
-      throw new NotFoundError('Playlist tidak ditemukan');
-    }
-    const playlist = result.rows[0];
-    if (playlist.owner !== owner) {
-      throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
-    }
+  async verifyPlaylistSong(playlistId, owner) {
+    // Call playlist service to verify owner
+    await this.playlistsService.verifyPlaylistOwner(playlistId, owner);
   }
 
   // Verify playlist access
   async verifyPlaylistAccess(playlistId, userId) {
     try {
-      await this.verifyPlaylistOwner(playlistId, userId);
+      await this.verifyPlaylistSong(playlistId, userId);
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw error;
