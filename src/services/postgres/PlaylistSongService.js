@@ -2,14 +2,10 @@ const {Pool} = require('pg');
 const {nanoid} = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
 const AuthorizationError = require('../../exceptions/AuthorizationError');
-const NotFoundError = require('../../exceptions/NotFoundError');
-const PlaylistsService = require('./PlaylistService');
 
 class PlaylistSongService {
-  constructor(collaborationService) {
+  constructor() {
     this._pool = new Pool();
-    this._collaborationService = collaborationService;
-    this.playlistsService = new PlaylistsService;
   }
 
   // Add playlist song
@@ -54,28 +50,6 @@ class PlaylistSongService {
     if (!result.rowCount) {
       throw new
       InvariantError('Lagu gagal dihapus dari playlist. Id tidak ditemukan');
-    }
-  }
-
-  // Verify playlist
-  async verifyPlaylistSong(playlistId, owner) {
-    // Call playlist service to verify owner
-    await this.playlistsService.verifyPlaylistOwner(playlistId, owner);
-  }
-
-  // Verify playlist access
-  async verifyPlaylistAccess(playlistId, userId) {
-    try {
-      await this.verifyPlaylistSong(playlistId, userId);
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
-      }
-      try {
-        await this._collaborationService.verifyCollaborator(playlistId, userId);
-      } catch {
-        throw error;
-      }
     }
   }
 }

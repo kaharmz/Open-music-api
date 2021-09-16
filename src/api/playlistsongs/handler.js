@@ -1,6 +1,7 @@
 class PlaylistsSongHandler {
-  constructor(service, validator) {
-    this._service = service;
+  constructor(playlistSongsService, playlistsService, validator) {
+    this._playlistSongsService = playlistSongsService;
+    this._playlistService = playlistsService;
     this._validator = validator;
     this.addPlaylistSongHandler = this.addPlaylistSongHandler.bind(this);
     this.getPlaylistSongHandler = this.getPlaylistSongHandler.bind(this);
@@ -13,8 +14,8 @@ class PlaylistsSongHandler {
     const {songId} = request.payload;
     const {id: credentialId} = request.auth.credentials;
     this._validator.validatePlaylistSongPayload(request.payload);
-    await this._service.verifyPlaylistAccess(playlistId, credentialId);
-    await this._service.addPlaylistSong({playlistId, songId});
+    await this._playlistService.verifyPlaylistAccess(playlistId, credentialId);
+    await this._playlistSongsService.addPlaylistSong({playlistId, songId});
     const response = h.response({
       status: 'success',
       message: 'Lagu berhasil ditambahkan ke playlist',
@@ -27,8 +28,8 @@ class PlaylistsSongHandler {
   async getPlaylistSongHandler(request) {
     const {playlistId} = request.params;
     const {id: credentialId} = request.auth.credentials;
-    await this._service.verifyPlaylistAccess(playlistId, credentialId);
-    const songs = await this._service.getPlaylistSongs(playlistId);
+    await this._playlistService.verifyPlaylistAccess(playlistId, credentialId);
+    const songs = await this._playlistSongsService.getPlaylistSongs(playlistId);
     return {
       status: 'success',
       data: {
@@ -42,8 +43,8 @@ class PlaylistsSongHandler {
     const {playlistId} = request.params;
     const {songId} = request.payload;
     const {id: credentialId} = request.auth.credentials;
-    await this._service.verifyPlaylistAccess(playlistId, credentialId);
-    await this._service.deletePlaylistSong(playlistId, songId);
+    await this._playlistService.verifyPlaylistAccess(playlistId, credentialId);
+    await this._playlistSongsService.deletePlaylistSong(playlistId, songId);
     return {
       status: 'success',
       message: 'Lagu berhasil ditambahkan',
