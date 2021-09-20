@@ -193,6 +193,9 @@ const init = async () => {
       if (statusCode === 401) {
         return h.response(payload).code(401);
       }
+      if (statusCode === 413) {
+        return h.response(payload).code(413);
+      }
       const newResponse = h.response({
         status: 'error',
         message: 'Maaf, terjadi kegagalan pada server kami.',
