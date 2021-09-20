@@ -3,7 +3,7 @@ const path = require('path');
 const routes = (handler) => [
   {
     method: 'POST',
-    path: '/uploads/images',
+    path: '/uploads/pictures',
     handler: handler.postUploadImageHandler,
     options: {
       payload: {

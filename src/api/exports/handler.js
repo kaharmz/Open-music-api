@@ -3,7 +3,8 @@ class ExportHandler {
     this._producersService = producersService;
     this._playlistsService = playlistsService;
     this._validator = validator;
-    this.postExportPlaylistsHandler = this.postExportPlaylistsHandler;
+    this.postExportPlaylistsHandler =
+    this.postExportPlaylistsHandler.bind(this);
   }
 
   // POST Export playlists
