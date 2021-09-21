@@ -1,13 +1,13 @@
 const {Pool} = require('pg');
 const {nanoid} = require('nanoid');
+const {mapDBToModel} = require('../../utils');
 const InvariantError = require('../../exceptions/InvariantError');
-const NotFoundError = require('../../exceptions/NotFoundError');
-const AuthorizationError = require('../../exceptions/AuthorizationError');
+
 
 class PlaylistSongService {
-  constructor(collaborationService) {
+  constructor(cacheService) {
     this._pool = new Pool();
-    this._collaborationService = collaborationService;
+    this._cacheService = cacheService;
   }
 
   // Add playlist song
@@ -21,22 +21,29 @@ class PlaylistSongService {
     if (!result.rowCount) {
       throw new InvariantError('Lagu gagal ditambahkan ke playlist');
     }
+    await this._cacheService.delete(`playlistsongs:${playlistId}`);
     return result.rows[0].id;
   }
 
   // Get playlist song
   async getPlaylistSongs(playlistId) {
-    const query = {
-      text: `SELECT songs.id, songs.title, songs.performer FROM playlistsongs
-      LEFT JOIN songs ON songs.id = playlistsongs.song_id
-      WHERE playlistsongs.playlist_id = $1`,
-      values: [playlistId],
-    };
-    const result = await this._pool.query(query);
-    if (!result.rowCount) {
-      throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
+    try {
+      const result =
+      await this._cacheService.get(`playlistsongs: ${playlistId}`);
+      return JSON.parse(result);
+    } catch (error) {
+      const query = {
+        text: `SELECT songs.id, songs.title, songs.performer FROM playlistsongs
+        LEFT JOIN songs ON songs.id = playlistsongs.song_id
+        WHERE playlistsongs.playlist_id = $1`,
+        values: [playlistId],
+      };
+      const result = await this._pool.query(query);
+      const mappedResult = result.rows.map(mapDBToModel);
+      await this._cacheService.set(`playlistsongs:${playlistId}`,
+          JSON.stringify(mappedResult));
+      return mappedResult;
     }
-    return result.rows;
   }
 
   // Delete playlist song
@@ -53,38 +60,7 @@ class PlaylistSongService {
       throw new
       InvariantError('Lagu gagal dihapus dari playlist. Id tidak ditemukan');
     }
-  }
-
-  // Verify playlist
-  async verifyPlaylistOwner(playlistId, owner) {
-    const query = {
-      text: 'SELECT * FROM playlists WHERE id = $1',
-      values: [playlistId],
-    };
-    const result = await this._pool.query(query);
-    if (!result.rowCount) {
-      throw new NotFoundError('Playlist tidak ditemukan');
-    }
-    const playlist = result.rows[0];
-    if (!playlist.owner !== owner) {
-      throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
-    }
-  }
-
-  // Verify playlist access
-  async verifyPlaylistAccess(playlistId, userId) {
-    try {
-      await this.verifyPlaylistOwner(playlistId, userId);
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
-      }
-      try {
-        await this._collaborationService.verifyCollaborator(playlistId, userId);
-      } catch (error) {
-        throw error;
-      }
-    }
+    await this._cacheService.delete(`playlistsongs:${playlistId}`);
   }
 }
 

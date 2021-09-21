@@ -3,6 +3,8 @@ require('dotenv').config();
 const Hapi = require('@hapi/hapi');
 const songs = require('./api/songs');
 const Jwt = require('@hapi/jwt');
+const Inert = require('@hapi/inert');
+const path = require('path');
 
 // Song
 const SongsService = require('./services/postgres/SongsService');
@@ -37,13 +39,29 @@ const playlistsongs = require('./api/playlistsongs');
 const PlaylistsSongService = require('./services/postgres/PlaylistSongService');
 const PlaylistsSongValidator = require('./validator/playlistsongs');
 
+// Exports
+const _exports = require('./api/exports');
+const ProducersService = require('./services/rabbitmq/ProducerService');
+const ExportsValidator = require('./validator/exports');
+
+// Uploads
+const uploads = require('./api/uploads');
+const StorageService = require('./services/storage/StorageService');
+const UploadsValidator = require('./validator/uploads');
+
+// Cache
+const CacheService = require('./services/redis/CacheService');
+
 const init = async () => {
+  const cacheService = new CacheService();
   const songsService = new SongsService();
   const usersService = new UserService();
   const authenticationsService = new AuthenticationService();
-  const collaborationsService = new CollaborationService();
-  const playlistsService = new PlaylistsService();
-  const playlistsSongService = new PlaylistsSongService();
+  const collaborationsService = new CollaborationService(cacheService);
+  const playlistsService = new PlaylistsService(collaborationsService);
+  const playlistsSongService = new PlaylistsSongService(cacheService);
+  const storageService =
+  new StorageService(path.resolve(__dirname, 'api/uploads/file/pictures'));
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -58,6 +76,9 @@ const init = async () => {
   await server.register([
     {
       plugin: Jwt,
+    },
+    {
+      plugin: Inert,
     },
   ]);
 
@@ -79,6 +100,7 @@ const init = async () => {
 
   // Add Plugin
   await server.register([
+    // Songs
     {
       plugin: songs,
       options: {
@@ -86,6 +108,8 @@ const init = async () => {
         validator: SongsValidator,
       },
     },
+
+    // Users
     {
       plugin: users,
       options: {
@@ -93,6 +117,8 @@ const init = async () => {
         validator: UsersValidator,
       },
     },
+
+    // Authentications
     {
       plugin: authentications,
       options: {
@@ -102,6 +128,8 @@ const init = async () => {
         validator: AuthenticationsValidator,
       },
     },
+
+    // Playlists
     {
       plugin: playlists,
       options: {
@@ -109,18 +137,43 @@ const init = async () => {
         validator: PlaylistsValidator,
       },
     },
+
+    // Playlists Song
     {
       plugin: playlistsongs,
       options: {
-        service: playlistsSongService,
+        playlistsSongService,
+        playlistsService,
         validator: PlaylistsSongValidator,
       },
     },
+
+    // Collaborations
     {
       plugin: collaborations,
       options: {
-        service: collaborationsService,
+        collaborationsService,
+        playlistsService,
         validator: CollaborationsValidator,
+      },
+    },
+
+    // Exports
+    {
+      plugin: _exports,
+      options: {
+        ProducersService,
+        playlistsService,
+        validator: ExportsValidator,
+      },
+    },
+
+    // Uploads
+    {
+      plugin: uploads,
+      options: {
+        service: storageService,
+        validator: UploadsValidator,
       },
     },
   ]);
@@ -139,6 +192,9 @@ const init = async () => {
       const {statusCode, payload} = response.output;
       if (statusCode === 401) {
         return h.response(payload).code(401);
+      }
+      if (statusCode === 413) {
+        return h.response(payload).code(413);
       }
       const newResponse = h.response({
         status: 'error',
